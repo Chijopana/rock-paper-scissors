@@ -7,6 +7,7 @@ const resultText = document.getElementById("result-text");
 const scoreDisplay = document.getElementById("score");
 const timerText = document.getElementById("timer-text");
 const modeSelect = document.getElementById("mode");
+const bigBangToggle = document.getElementById("bigbang-toggle");
 const overlay = document.getElementById("overlay");
 const overlayMessage = document.getElementById("overlay-message");
 const playAgainBtn = document.getElementById("play-again");
@@ -14,34 +15,89 @@ const playAgainBtn = document.getElementById("play-again");
 const winSound = document.getElementById("win-sound");
 const loseSound = document.getElementById("lose-sound");
 
+const classicChoices = ['rock', 'paper', 'scissors'];
+const bigBangChoices = ['rock', 'paper', 'scissors', 'lizard', 'spock'];
+
+const choiceDisplayNames = {
+  rock: "🪨 Rock",
+  paper: "📄 Paper",
+  scissors: "✂️ Scissors",
+  lizard: "🦎 Lizard",
+  spock: "🖖 Spock"
+};
+
+// Actualiza botones según el checkbox bigBangToggle
+function updateChoiceButtons() {
+  const choicesDiv = document.querySelector(".choices");
+  const useBigBang = bigBangToggle.checked;
+
+  let choicesToShow = useBigBang ? bigBangChoices : classicChoices;
+
+  // Limpia botones actuales
+  choicesDiv.innerHTML = '';
+
+  // Crea botones para las opciones del modo actual
+  choicesToShow.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.id = choice;
+    btn.className = 'choice-btn';
+    btn.textContent = choiceDisplayNames[choice];
+    btn.addEventListener('click', () => handleHumanChoice(choice));
+    choicesDiv.appendChild(btn);
+  });
+}
+
 function getComputerChoice() {
-  const choices = ['rock', 'paper', 'scissors'];
+  const useBigBang = bigBangToggle.checked;
+  let choices = useBigBang ? bigBangChoices : classicChoices;
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function playRound(human, computer) {
   if (human === computer) return 'tie';
 
-  if (
-    (human === 'rock' && computer === 'scissors') ||
-    (human === 'paper' && computer === 'rock') ||
-    (human === 'scissors' && computer === 'paper')
-  ) {
-    humanScore++;
-    return 'human';
+  const useBigBang = bigBangToggle.checked;
+
+  if (!useBigBang) {
+    // Reglas clásicas
+    if (
+      (human === 'rock' && computer === 'scissors') ||
+      (human === 'paper' && computer === 'rock') ||
+      (human === 'scissors' && computer === 'paper')
+    ) {
+      humanScore++;
+      return 'human';
+    } else {
+      computerScore++;
+      return 'computer';
+    }
   } else {
-    computerScore++;
-    return 'computer';
+    // Reglas Big Bang Theory
+    const winsAgainst = {
+      rock: ['scissors', 'lizard'],
+      paper: ['rock', 'spock'],
+      scissors: ['paper', 'lizard'],
+      lizard: ['spock', 'paper'],
+      spock: ['scissors', 'rock']
+    };
+
+    if (winsAgainst[human].includes(computer)) {
+      humanScore++;
+      return 'human';
+    } else {
+      computerScore++;
+      return 'computer';
+    }
   }
 }
 
 function displayResult(result, human, computer) {
   if (result === 'tie') {
-    resultText.textContent = `🤝 Tie! You both chose ${human}`;
+    resultText.textContent = `🤝 Tie! You both chose ${choiceDisplayNames[human]}`;
   } else if (result === 'human') {
-    resultText.textContent = `✅ You win! ${human} beats ${computer}`;
+    resultText.textContent = `✅ You win! ${choiceDisplayNames[human]} beats ${choiceDisplayNames[computer]}`;
   } else {
-    resultText.textContent = `❌ You lose! ${computer} beats ${human}`;
+    resultText.textContent = `❌ You lose! ${choiceDisplayNames[computer]} beats ${choiceDisplayNames[human]}`;
   }
   scoreDisplay.textContent = `Your Score: ${humanScore} | Bot Score: ${computerScore}`;
 }
@@ -119,7 +175,6 @@ function showOverlay(message) {
   overlayMessage.textContent = message;
   overlay.style.display = 'flex';
 
-  // Lanzar confeti SOLO si mensaje indica victoria humana
   const lower = message.toLowerCase();
   if (
     lower.includes('you win') ||
@@ -151,8 +206,22 @@ modeSelect.addEventListener("change", () => {
   clearInterval(timer);
   hideOverlay();
   resetGame();
+  updateChoiceButtons();
   if (modeSelect.value === 'timed') startTimer();
 });
+
+bigBangToggle.addEventListener("change", () => {
+  clearInterval(timer);
+  hideOverlay();
+  resetGame();
+  updateChoiceButtons();
+  if (modeSelect.value === 'timed') startTimer();
+});
+
+// Inicializa botones al cargar la página
+updateChoiceButtons();
+
+playAgainBtn.addEventListener("click", hideOverlay);
 
 // Función para lanzar confeti centrado en pantalla
 function launchConfetti() {
@@ -166,7 +235,7 @@ function launchConfetti() {
   });
 }
 
-document.getElementById("rock").addEventListener("click", () => handleHumanChoice("rock"));
-document.getElementById("paper").addEventListener("click", () => handleHumanChoice("paper"));
-document.getElementById("scissors").addEventListener("click", () => handleHumanChoice("scissors"));
+// Inicializa botones al cargar la página
+updateChoiceButtons();
+
 playAgainBtn.addEventListener("click", hideOverlay);

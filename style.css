@@ -73,6 +73,18 @@ h1 {
   margin-bottom: 20px;
 }
 
+.extra-options {
+  margin: 10px 0 20px 0;
+  color: #ffde59;
+  font-weight: bold;
+  user-select: none;
+}
+
+.extra-options input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
 select {
   padding: 8px 12px;
   border-radius: 8px;
