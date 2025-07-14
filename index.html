@@ -2,23 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rock Paper Scissors Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🔥 Rock Paper Scissors 🔥</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <h1>🔥 Rock Paper Scissors 🔥</h1>
   <div class="game-container">
-    <h1>Rock Paper Scissors Game</h1>
+    <div class="mode-select">
+      <label for="mode">Mode: </label>
+      <select id="mode">
+        <option value="classic">Classic</option>
+        <option value="firstTo5">First to 5</option>
+        <option value="timed">30s Time Attack</option>
+      </select>
+    </div>
     <div class="choices">
-      <button id="rock" class="choice-btn">Rock</button>
-      <button id="paper" class="choice-btn">Paper</button>
-      <button id="scissors" class="choice-btn">Scissors</button>
+      <button id="rock" class="choice-btn">🪨 Rock</button>
+      <button id="paper" class="choice-btn">📄 Paper</button>
+      <button id="scissors" class="choice-btn">✂️ Scissors</button>
     </div>
     <div class="result">
-      <p id="result-text">Make your choice!</p>
-      <p id="score">Your Score: 0 | Computer Score: 0</p>
+      <p id="result-text">Make your move!</p>
+      <p id="score">Your Score: 0 | Bot Score: 0</p>
+      <p id="timer-text"></p>
     </div>
+     <div id="overlay" class="overlay" style="display:none;">
+    <h2 id="overlay-message"></h2>
+    <button id="play-again">Play Again</button>
   </div>
-  <script src="script.js"></script>
+  </div>
+
+  <audio id="win-sound" src="win.mp3"></audio>
+  <audio id="lose-sound" src="lose.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script src="script.js"></script>
+<footer class="footer">
+  <p>© 2025 Hecho por Jose Blondel</p>
+</footer>
 </body>
+
 </html>
