@@ -1,54 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🔥 Rock Paper Scissors 🔥</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+  <meta name="description" content="Rock Paper Scissors - Juego interactivo con múltiples modos" />
+  <title>🎮 Rock Paper Scissors - Juego Interactivo</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🔥 Rock Paper Scissors 🔥</h1>
-  <div class="game-container">
-    <div class="mode-select">
-  <label for="mode">Mode: </label>
-  <select id="mode">
-    <option value="classic">Classic</option>
-    <option value="firstTo5">First to 5</option>
-    <option value="timed">30s Time Attack</option>
-  </select>
-</div>
-
-<div class="extra-options">
-  <label>
-    <input type="checkbox" id="bigbang-toggle" />
-    Activate Big Bang Options (Lizard & Spock)
-  </label>
-</div>
-    <div class="choices">
-      <button id="rock" class="choice-btn">🪨 Rock</button>
-      <button id="paper" class="choice-btn">📄 Paper</button>
-      <button id="scissors" class="choice-btn">✂️ Scissors</button>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <h1>🎮 Rock Paper Scissors</h1>
+      </div>
+      
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" title="Toggle theme" aria-label="Toggle dark/light mode">
+          <span class="theme-icon">🌙</span>
+        </button>
+        <button class="icon-btn reset-btn" title="Reset game" aria-label="Reset game">
+          ↻
+        </button>
+      </div>
     </div>
-    <div class="result">
-      <p id="result-text">Make your move!</p>
-      <p id="score">Your Score: 0 | Bot Score: 0</p>
-      <p id="timer-text"></p>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="page-shell">
+    <div class="layout">
+      <!-- ZONA PRINCIPAL -->
+      <div class="game-column">
+
+        <!-- CARD: JUEGO PRINCIPAL -->
+        <div class="card game-card">
+          <div class="card-header">
+            <h2>🎯 ELIGE TU MOVIMIENTO</h2>
+            <span id="timer-text" class="timer"></span>
+          </div>
+
+          <!-- Opciones de juego -->
+          <div class="choices"></div>
+
+          <!-- Resultado -->
+          <div class="result-section">
+            <p id="result-text" class="result-text">¡Haz tu movimiento!</p>
+            <p id="score" class="score-text">Tu Puntuación: 0 | Bot: 0</p>
+          </div>
+        </div>
+
+        <!-- CARD: CONTROLES -->
+        <div class="card controls-card">
+          <div class="card-header">
+            <h2>⚙️ AJUSTES</h2>
+          </div>
+          
+          <div class="controls-grid">
+            <!-- Modo de juego -->
+            <div class="control-group">
+              <label for="mode" class="control-label">Modo de Juego</label>
+              <select id="mode" class="select-input">
+                <option value="classic">Clásico</option>
+                <option value="firstTo5">Primero a 5</option>
+                <option value="timed">Ataque de 30s</option>
+                <option value="online">Online</option>
+              </select>
+            </div>
+
+            <!-- Big Bang Toggle -->
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="bigbang-toggle" />
+                <span>Modo Big Bang (Lagarto & Spock)</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="online-panel" class="online-panel" hidden>
+            <div class="online-panel-header">
+              <div>
+                <h3>🌐 Partida Online</h3>
+                <p>Comparte el enlace con el otro jugador. Online solo funciona en clásico y Big Bang.</p>
+              </div>
+              <span id="online-status" class="online-status">Inactivo</span>
+            </div>
+
+            <div class="online-link-row">
+              <input id="room-link" class="room-link" type="text" readonly placeholder="El enlace de la sala aparecerá aquí" />
+              <button id="copy-room-link" class="btn btn-secondary" type="button">Copiar enlace</button>
+            </div>
+
+            <div class="online-actions">
+              <button id="create-room-btn" class="btn btn-primary" type="button">Crear sala</button>
+              <button id="leave-room-btn" class="btn btn-ghost" type="button" hidden>Salir de la sala</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL SECUNDARIO -->
+      <aside class="sidebar">
+        
+        <!-- CARD: ESTADÍSTICAS -->
+        <div class="card stats-card">
+          <div class="card-header">
+            <h2>📊 ESTADÍSTICAS</h2>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">Partidas</span>
+              <strong id="total-games" class="stat-value">0</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Ganadas</span>
+              <strong id="wins" class="stat-value">0</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Perdidas</span>
+              <strong id="losses" class="stat-value">0</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">% Victoria</span>
+              <strong id="win-rate" class="stat-value">0%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD: MOVIMIENTOS RECIENTES -->
+        <div class="card history-card">
+          <div class="card-header">
+            <h2>📜 HISTORIAL</h2>
+          </div>
+          
+          <div class="history-list" id="history-list">
+            <p class="empty-state">Sin historial</p>
+          </div>
+        </div>
+
+        <!-- CARD: REGLAS -->
+        <div class="card rules-card">
+          <div class="card-header">
+            <h2>📋 REGLAS</h2>
+          </div>
+          
+          <div id="rules-content" class="rules-content">
+            <p><strong>Piedra</strong> rompe Tijeras</p>
+            <p><strong>Papel</strong> cubre Piedra</p>
+            <p><strong>Tijeras</strong> corta Papel</p>
+          </div>
+        </div>
+      </aside>
     </div>
-     <div id="overlay" class="overlay" style="display:none;">
-    <h2 id="overlay-message"></h2>
-    <button id="play-again">Play Again</button>
-  </div>
+  </main>
+
+  <!-- OVERLAY RESULTADO FINAL -->
+  <div id="overlay" class="overlay" hidden>
+    <div class="overlay-content">
+      <h2 id="overlay-message"></h2>
+      <div class="overlay-stats">
+        <p>Tu Puntuación: <strong id="final-human-score">0</strong></p>
+        <p>Bot Puntuación: <strong id="final-computer-score">0</strong></p>
+      </div>
+      <button id="play-again" class="btn btn-primary">Jugar de Nuevo</button>
+    </div>
   </div>
 
-  <audio id="win-sound" src="win.mp3"></audio>
-  <audio id="lose-sound" src="lose.mp3"></audio>
+  <!-- AUDIO -->
+  <audio id="win-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
+  </audio>
+  <audio id="lose-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
+  </audio>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-<script src="script.js"></script>
-<footer class="footer">
-  <p>© 2025 Hecho por Jose Blondel</p>
-</footer>
+  <!-- CONFETTI -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="script.js"></script>
 </body>
-
 </html>
