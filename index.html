@@ -1,192 +1,318 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Rock Paper Scissors - Juego interactivo con múltiples modos" />
-  <title>🎮 Rock Paper Scissors - Juego Interactivo</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#0a1120" />
+  <meta name="description" content="Piedra, Papel o Tijeras: modos clásico, primero a N, contrarreloj y online, con variante Big Bang (Lagarto y Spock), tres niveles de dificultad y estadísticas." />
+  <title>Piedra, Papel o Tijeras</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%9C%8C%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+
+  <!-- Tema aplicado antes de pintar para evitar el parpadeo de color al cargar -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('rps:theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- HEADER -->
+  <a class="skip-link" href="#choices">Saltar al juego</a>
+
+  <!-- ============ HEADER ============ -->
   <header class="header">
-    <div class="header-content">
+    <div class="header-inner">
       <div class="brand">
-        <h1>🎮 Rock Paper Scissors</h1>
+        <h1 class="brand-title">Piedra <span aria-hidden="true">·</span> Papel <span aria-hidden="true">·</span> Tijeras</h1>
+        <p class="brand-tagline">Elige, juega y vence al bot</p>
       </div>
-      
+
       <div class="header-actions">
-        <button class="icon-btn theme-toggle" title="Toggle theme" aria-label="Toggle dark/light mode">
-          <span class="theme-icon">🌙</span>
+        <button type="button" class="icon-btn" id="sound-toggle" aria-pressed="true" title="Silenciar sonido (M)">
+          <span class="icon-btn-glyph" aria-hidden="true">&#128266;</span>
+          <span class="sr-only">Sonido</span>
         </button>
-        <button class="icon-btn reset-btn" title="Reset game" aria-label="Reset game">
-          ↻
+        <button type="button" class="icon-btn" id="theme-toggle" title="Cambiar tema (T)">
+          <span class="icon-btn-glyph" aria-hidden="true">&#127769;</span>
+          <span class="sr-only">Cambiar tema</span>
+        </button>
+        <button type="button" class="icon-btn icon-btn--danger" id="reset-btn" title="Reiniciar estadísticas (R)">
+          <span class="icon-btn-glyph" aria-hidden="true">&#8635;</span>
+          <span class="sr-only">Reiniciar estadísticas</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
+  <!-- ============ MAIN ============ -->
   <main class="page-shell">
     <div class="layout">
-      <!-- ZONA PRINCIPAL -->
       <div class="game-column">
 
-        <!-- CARD: JUEGO PRINCIPAL -->
-        <div class="card game-card">
+        <!-- ---------- ARENA ---------- -->
+        <section class="card game-card" aria-labelledby="game-card-title">
           <div class="card-header">
-            <h2>🎯 ELIGE TU MOVIMIENTO</h2>
-            <span id="timer-text" class="timer"></span>
+            <h2 id="game-card-title" class="card-title">Elige tu movimiento</h2>
+            <span id="timer-text" class="timer" hidden></span>
           </div>
 
-          <!-- Opciones de juego -->
-          <div class="choices"></div>
+          <!-- Marcador -->
+          <div class="scoreboard">
+            <div class="score-side">
+              <span class="score-name" id="player-name">Tú</span>
+              <span class="score-value" id="player-score">0</span>
+            </div>
+            <div class="score-sep" aria-hidden="true">vs</div>
+            <div class="score-side score-side--right">
+              <span class="score-name" id="opponent-name">Bot</span>
+              <span class="score-value" id="opponent-score">0</span>
+            </div>
+          </div>
+
+          <div class="target-track" id="target-track" hidden>
+            <div class="pips" id="player-pips" aria-hidden="true"></div>
+            <span class="target-label" id="target-label"></span>
+            <div class="pips pips--right" id="opponent-pips" aria-hidden="true"></div>
+          </div>
+
+          <!-- Arena de combate -->
+          <div class="arena" id="arena" data-state="idle">
+            <div class="fighter">
+              <span class="fighter-hand" id="player-hand" aria-hidden="true">&#9994;</span>
+              <span class="fighter-move" id="player-move">Tu jugada</span>
+            </div>
+            <div class="arena-center">
+              <span class="arena-flash" id="arena-flash" aria-hidden="true">VS</span>
+            </div>
+            <div class="fighter">
+              <span class="fighter-hand fighter-hand--mirror" id="opponent-hand" aria-hidden="true">&#9994;</span>
+              <span class="fighter-move" id="opponent-move">Su jugada</span>
+            </div>
+          </div>
+
+          <!-- Botones de jugada -->
+          <div class="choices" id="choices" role="group" aria-label="Elige tu jugada"></div>
+
+          <p class="shortcut-hint">
+            Atajos: <kbd>1</kbd>–<kbd>5</kbd> jugar · <kbd>T</kbd> tema · <kbd>M</kbd> sonido · <kbd>R</kbd> reiniciar
+          </p>
 
           <!-- Resultado -->
-          <div class="result-section">
-            <p id="result-text" class="result-text">¡Haz tu movimiento!</p>
-            <p id="score" class="score-text">Tu Puntuación: 0 | Bot: 0</p>
+          <div class="result-section" id="result-section" data-result="none">
+            <p id="result-text" class="result-text" role="status" aria-live="polite">¡Haz tu movimiento!</p>
+            <p id="streak-text" class="streak-text" hidden></p>
           </div>
-        </div>
+        </section>
 
-        <!-- CARD: CONTROLES -->
-        <div class="card controls-card">
+        <!-- ---------- AJUSTES ---------- -->
+        <section class="card controls-card" aria-labelledby="controls-title">
           <div class="card-header">
-            <h2>⚙️ AJUSTES</h2>
+            <h2 id="controls-title" class="card-title">Ajustes</h2>
           </div>
-          
-          <div class="controls-grid">
-            <!-- Modo de juego -->
-            <div class="control-group">
-              <label for="mode" class="control-label">Modo de Juego</label>
-              <select id="mode" class="select-input">
-                <option value="classic">Clásico</option>
-                <option value="firstTo5">Primero a 5</option>
-                <option value="timed">Ataque de 30s</option>
-                <option value="online">Online</option>
-              </select>
-            </div>
 
-            <!-- Big Bang Toggle -->
-            <div class="control-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="bigbang-toggle" />
-                <span>Modo Big Bang (Lagarto & Spock)</span>
-              </label>
+          <div class="control-group">
+            <span class="control-label" id="mode-label">Modo de juego</span>
+            <div class="chips" role="group" aria-labelledby="mode-label" id="mode-chips">
+              <button type="button" class="chip" data-mode="classic" aria-pressed="true">
+                <span class="chip-glyph" aria-hidden="true">&#9854;</span> Clásico
+              </button>
+              <button type="button" class="chip" data-mode="firstTo" aria-pressed="false">
+                <span class="chip-glyph" aria-hidden="true">&#127937;</span> Primero a N
+              </button>
+              <button type="button" class="chip" data-mode="timed" aria-pressed="false">
+                <span class="chip-glyph" aria-hidden="true">&#9201;</span> Contrarreloj
+              </button>
+              <button type="button" class="chip" data-mode="online" aria-pressed="false">
+                <span class="chip-glyph" aria-hidden="true">&#127760;</span> Online
+              </button>
             </div>
           </div>
 
+          <div class="control-group" id="difficulty-group">
+            <span class="control-label" id="difficulty-label">Dificultad del bot</span>
+            <div class="chips" role="group" aria-labelledby="difficulty-label" id="difficulty-chips">
+              <button type="button" class="chip" data-difficulty="easy" aria-pressed="false">Fácil</button>
+              <button type="button" class="chip" data-difficulty="normal" aria-pressed="true">Normal</button>
+              <button type="button" class="chip" data-difficulty="hard" aria-pressed="false">Difícil</button>
+            </div>
+            <p class="control-hint" id="difficulty-hint"></p>
+          </div>
+
+          <div class="control-group" id="target-group" hidden>
+            <span class="control-label" id="target-chips-label">Rondas para ganar</span>
+            <div class="chips" role="group" aria-labelledby="target-chips-label" id="target-chips">
+              <button type="button" class="chip" data-target="3" aria-pressed="false">3</button>
+              <button type="button" class="chip" data-target="5" aria-pressed="true">5</button>
+              <button type="button" class="chip" data-target="10" aria-pressed="false">10</button>
+            </div>
+          </div>
+
+          <div class="control-group" id="duration-group" hidden>
+            <span class="control-label" id="duration-chips-label">Duración</span>
+            <div class="chips" role="group" aria-labelledby="duration-chips-label" id="duration-chips">
+              <button type="button" class="chip" data-duration="15" aria-pressed="false">15s</button>
+              <button type="button" class="chip" data-duration="30" aria-pressed="true">30s</button>
+              <button type="button" class="chip" data-duration="60" aria-pressed="false">60s</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="switch" for="bigbang-toggle">
+              <input type="checkbox" id="bigbang-toggle" />
+              <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+              <span class="switch-text">
+                <strong>Modo Big Bang</strong>
+                <small>Añade Lagarto 🦎 y Spock 🖖</small>
+              </span>
+            </label>
+          </div>
+
+          <!-- Panel online -->
           <div id="online-panel" class="online-panel" hidden>
-            <div class="online-panel-header">
-              <div>
-                <h3>🌐 Partida Online</h3>
-                <p>Sigue estos pasos: crea la sala, copia el enlace y ábrelo en otra pestaña o envíaselo a la otra persona para jugar juntos.</p>
-              </div>
-              <span id="online-status" class="online-status">Inactivo</span>
+            <div class="online-header">
+              <h3>Partida online</h3>
+              <span id="online-status" class="online-status" data-tone="neutral">Inactivo</span>
             </div>
 
             <ol class="online-guide">
-              <li>Haz clic en <strong>Crear sala</strong>.</li>
-              <li>Haz clic en <strong>Copiar enlace</strong> y abre ese enlace en otra pestaña o compártelo con la otra persona.</li>
-              <li>Cuando ambos estén conectados, esperen la cuenta de 3 y luego elijan su jugada al mismo tiempo.</li>
+              <li>Pulsa <strong>Crear sala</strong>.</li>
+              <li><strong>Copia el enlace</strong> y ábrelo en otra pestaña o envíaselo a otra persona.</li>
+              <li>Cuando ambos estéis conectados, esperad la cuenta atrás y elegid a la vez.</li>
             </ol>
 
-            <p class="online-note">Online solo funciona en <strong>Clásico</strong> y <strong>Big Bang</strong>.</p>
-
             <div class="online-link-row">
-              <input id="room-link" class="room-link" type="text" readonly placeholder="El enlace de la sala aparecerá aquí" />
-              <button id="copy-room-link" class="btn btn-secondary" type="button">Copiar enlace</button>
+              <input id="room-link" class="room-link" type="text" readonly
+                     aria-label="Enlace de la sala"
+                     placeholder="El enlace de la sala aparecerá aquí" />
+              <button type="button" id="copy-room-link" class="btn btn-secondary">Copiar</button>
             </div>
 
             <div class="online-actions">
-              <button id="create-room-btn" class="btn btn-primary" type="button">Crear sala</button>
-              <button id="leave-room-btn" class="btn btn-ghost" type="button" hidden>Salir de la sala</button>
+              <button type="button" id="create-room-btn" class="btn btn-primary">Crear sala</button>
+              <button type="button" id="leave-room-btn" class="btn btn-ghost" hidden>Salir de la sala</button>
             </div>
+
+            <p class="control-hint">La conexión es directa entre navegadores (P2P). No está disponible con «Primero a N» ni «Contrarreloj».</p>
           </div>
-        </div>
+        </section>
       </div>
 
-      <!-- PANEL SECUNDARIO -->
+      <!-- ---------- SIDEBAR ---------- -->
       <aside class="sidebar">
-        
-        <!-- CARD: ESTADÍSTICAS -->
-        <div class="card stats-card">
+        <section class="card stats-card" aria-labelledby="stats-title">
           <div class="card-header">
-            <h2>📊 ESTADÍSTICAS</h2>
+            <h2 id="stats-title" class="card-title">Estadísticas</h2>
           </div>
-          
+
+          <div class="winrate">
+            <div class="winrate-bar" role="img" id="winrate-bar" aria-label="Sin partidas todavía">
+              <span class="winrate-seg winrate-seg--win" id="seg-win"></span>
+              <span class="winrate-seg winrate-seg--tie" id="seg-tie"></span>
+              <span class="winrate-seg winrate-seg--lose" id="seg-lose"></span>
+            </div>
+            <div class="winrate-legend">
+              <span><i class="dot dot--win" aria-hidden="true"></i> Ganadas <b id="wins">0</b></span>
+              <span><i class="dot dot--tie" aria-hidden="true"></i> Empates <b id="ties">0</b></span>
+              <span><i class="dot dot--lose" aria-hidden="true"></i> Perdidas <b id="losses">0</b></span>
+            </div>
+          </div>
+
           <div class="stats-grid">
             <div class="stat-item">
               <span class="stat-label">Partidas</span>
               <strong id="total-games" class="stat-value">0</strong>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Ganadas</span>
-              <strong id="wins" class="stat-value">0</strong>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Perdidas</span>
-              <strong id="losses" class="stat-value">0</strong>
-            </div>
-            <div class="stat-item">
               <span class="stat-label">% Victoria</span>
               <strong id="win-rate" class="stat-value">0%</strong>
             </div>
+            <div class="stat-item">
+              <span class="stat-label">Racha</span>
+              <strong id="streak" class="stat-value">0</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Mejor racha</span>
+              <strong id="best-streak" class="stat-value">0</strong>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <!-- CARD: MOVIMIENTOS RECIENTES -->
-        <div class="card history-card">
+        <section class="card history-card" aria-labelledby="history-title">
           <div class="card-header">
-            <h2>📜 HISTORIAL</h2>
+            <h2 id="history-title" class="card-title">Historial</h2>
+            <span class="card-badge" id="history-count" hidden>0</span>
           </div>
-          
           <div class="history-list" id="history-list">
-            <p class="empty-state">Sin historial</p>
+            <p class="empty-state">Aún no has jugado ninguna ronda.</p>
           </div>
-        </div>
+        </section>
 
-        <!-- CARD: REGLAS -->
-        <div class="card rules-card">
+        <section class="card rules-card" aria-labelledby="rules-title">
           <div class="card-header">
-            <h2>📋 REGLAS</h2>
+            <h2 id="rules-title" class="card-title">Reglas</h2>
           </div>
-          
-          <div id="rules-content" class="rules-content">
-            <p><strong>Piedra</strong> rompe Tijeras</p>
-            <p><strong>Papel</strong> cubre Piedra</p>
-            <p><strong>Tijeras</strong> corta Papel</p>
-          </div>
-        </div>
+          <ul id="rules-content" class="rules-content"></ul>
+        </section>
       </aside>
     </div>
   </main>
 
-  <!-- OVERLAY RESULTADO FINAL -->
+  <footer class="footer">
+    <p>Hecho con JavaScript, HTML y CSS — sin frameworks ni paso de build.</p>
+  </footer>
+
+  <!-- ============ OVERLAY FIN DE PARTIDA ============ -->
   <div id="overlay" class="overlay" hidden>
-    <div class="overlay-content">
+    <div class="overlay-content" role="dialog" aria-modal="true" aria-labelledby="overlay-message">
+      <span class="overlay-emoji" id="overlay-emoji" aria-hidden="true">&#127881;</span>
       <h2 id="overlay-message"></h2>
+      <p class="overlay-sub" id="overlay-sub"></p>
       <div class="overlay-stats">
-        <p>Tu Puntuación: <strong id="final-human-score">0</strong></p>
-        <p>Bot Puntuación: <strong id="final-computer-score">0</strong></p>
+        <div>
+          <span id="overlay-player-label">Tú</span>
+          <strong id="final-human-score">0</strong>
+        </div>
+        <div>
+          <span id="overlay-opponent-label">Bot</span>
+          <strong id="final-computer-score">0</strong>
+        </div>
       </div>
-      <button id="play-again" class="btn btn-primary">Jugar de Nuevo</button>
+      <div class="overlay-actions">
+        <button type="button" id="play-again" class="btn btn-primary">Jugar de nuevo</button>
+        <button type="button" id="overlay-close" class="btn btn-ghost">Cerrar</button>
+      </div>
     </div>
   </div>
 
-  <!-- AUDIO -->
-  <audio id="win-sound" preload="auto">
-    <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
-  </audio>
-  <audio id="lose-sound" preload="auto">
-    <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
-  </audio>
+  <!-- ============ DIÁLOGO DE CONFIRMACIÓN ============ -->
+  <div id="confirm-dialog" class="overlay" hidden>
+    <div class="overlay-content overlay-content--sm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">¿Reiniciar todo?</h2>
+      <p class="overlay-sub" id="confirm-text">Se borrarán tus estadísticas, rachas e historial. Esta acción no se puede deshacer.</p>
+      <div class="overlay-actions">
+        <button type="button" id="confirm-accept" class="btn btn-danger">Sí, reiniciar</button>
+        <button type="button" id="confirm-cancel" class="btn btn-ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- CONFETTI -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- ============ TOASTS ============ -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
   <script src="script.js"></script>
 </body>
 </html>
